@@ -1,0 +1,41 @@
+name: TestPROGPOE
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: List repository contents
+        run: ls -R
+
+      - name: Compile Java source and test classes
+        working-directory: "./ST10485899 PROG5121 PART 2"
+        run: |
+          mkdir -p bin
+
+          echo "Downloading JUnit 4..."
+          curl -L -o junit-4.13.2.jar https://repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar
+          curl -L -o hamcrest-core-1.3.jar https://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+
+          echo "Compiling Java files..."
+          find src -name "*.java" > sources.txt
+          find test -name "*.java" >> sources.txt
+
+          javac -cp "junit-4.13.2.jar:hamcrest-core-1.3.jar" -d bin @sources.txt
+
+      - name: Run ALL JUnit 4 tests
+        working-directory: "./ST10485899 PROG5121 PART 2"
+        run: |
+          echo "Running JUnit tests..."
+          java -cp "bin:junit-4.13.2.jar:hamcrest-core-1.3.jar" \
+            org.junit.runner.JUnitCore \
+            $(find bin -name "*Test.class" | sed 's/bin\///;s/\.class//;s/\//./g')
